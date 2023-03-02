@@ -1,23 +1,39 @@
-from django.http import HttpResponseNotAllowed, JsonResponse
+from django.http import HttpResponseNotAllowed, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render,redirect
 import json, requests,random;
 from random import shuffle;
 from django.contrib import messages;
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth.models import User, auth
+from rootQuiz import models as Model
+from . import forms,models
+from django import forms
+from django.contrib.auth.models import Group
+from django.shortcuts import render,redirect,reverse
+from . import forms,models
+from django.db.models import Sum
+from django.contrib.auth.models import Group
+from django.http import HttpResponseRedirect
+from django.conf import settings
+from datetime import date, timedelta
+
+
 
 
 # Create your views here.
 
 category_keyword ={}
 ansArray = []
-numberOfQuestion = 3
+numberOfQuestion = 1
 
 #--------------------------------------------------------------------------------------#
-
 def isLogedin(user):
     return user.groups.filter(name='username').exists()
 
+def setCategory(x):
+  global currentCategory
+  currentCategory = x
+  
 
 def AppendCategory(val): 
   global category_keyword
@@ -142,7 +158,7 @@ def selectedQuiz(request, category):
             trial_question.append(QuestionDict(counter,que_pass,ans_pass,options))
         print(trial_question)
         questions = (json.dumps(trial_question))
-        
+        setCategory(category)
         return render(request,'quiz.html',{'category':category, 'questions':questions})
     else:
        return redirect('login')
@@ -159,7 +175,16 @@ def result(request):
             print(len(answers),"THis is answer length\n")
             print( len(ansArray))
             if(answers[i] == ansArray[i]):
-              counter = counter + 1    
+              counter = counter + 1
+  # here i need to get the player id 
+        PlayerName = request.user.username
+        # print("palyer name,", PlayerName, " Currernt Category ", currentCategory)
+        players = models.Player.objects.get(user_id=request.user.id)
+        Result = Model.Result()
+        Result.marks = counter
+        Result.category = currentCategory
+        Result.player = players
+        Result.save()   
         return JsonResponse({'result': counter})
     else: 
         return JsonResponse({'error': 'Invalid method'})
@@ -200,6 +225,9 @@ def register(requests):
                 return redirect('register')
             else:
                 user = User.objects.create_user(username=username,email=email,password=password)
+                Player = Model.Player()
+                Player.user = user
+                Player.save()
                 user.save()
                 return redirect('login')    
         else:
@@ -207,3 +235,30 @@ def register(requests):
             return redirect('register')     
     else:
       return  render(requests, "register.html")
+    
+
+
+def playerRegistration(request):
+    userForm=forms.PlayerUserForm
+    playerForm=forms.PlayerForm()
+    mydict={'userForm':userForm,'playerForm':playerForm}
+    if request.method=='POST':
+        userForm=forms.PlayerUserForm(request.POST)
+        playerForm=forms.PlayerForm(request.POST,request.FILES)
+        if userForm.is_valid() and playerForm.is_valid():
+            user=userForm.save()
+            user.set_password(user.password)
+            user.save()
+            player=playerForm.save(commit=False)
+            player.user=user
+            player.save()
+            my_player_group = Group.objects.get_or_create(name='PLAYER')
+            my_player_group[0].user_set.add(user)
+        return HttpResponseRedirect('login')
+    return render(request,'PlayerSignUp.html',context=mydict)
+
+def PlayerProfile(request):
+  player = models.Player.objects.get(user_id=request.user.id)
+  Result  = Model.Result.objects.filter(player =player)
+  print(Result)
+  return render(request,'player_dashboard.html',{'Result':Result})
