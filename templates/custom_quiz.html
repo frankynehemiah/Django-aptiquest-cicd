@@ -1,0 +1,172 @@
+
+{% block content %}
+{% load widget_tweaks %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+
+<div class="card">
+  <div class="card-header">
+    <div class="text-header">Custom Quiz</div>
+  </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn btn-primary"type="submit">Save</button>
+      </form>
+    </div>
+  </div>
+
+
+
+  <!-- <div class="form-wrapper">
+    <h2 class="form-title">Create Custom Quiz</h2>
+    <form method="POST" autocomplete="off" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="category_name">Quiz Name:</label>
+        {% render_field form.quiz_name|attr:'required:true' class="form-control" placeholder="quiz_name" %}
+      </div>
+      <div class="form-group">
+        <label for="total_questions">Quiz Code:</label>
+        <input type="number" id="total_questions" name="total_questions" min="1" required>
+        {% render_field form.quizCode|attr:'required:true' class="form-control" placeholder="Quiz Code" %}
+      </div>
+      <div class="form-group">
+        <label for="is_timed">Is Timed?</label>
+        <div class="x">
+          <input type="checkbox" id="is_timed" name="is_timed" onchange="toggleTimeSection()">
+          {% render_field form.is_timed|attr:'required:true' id="is_timed" class="form-control toggle-button" placeholder="is_timed" onchange="toggleTimeSection()"%}
+          <label for="is_timed"></label>
+        </div>
+      </div>
+    
+      <div class="form-group" id="time-section" style="display:none">
+        <label for="time">Time (in minutes):</label>
+        <input type="number" id="time" name="time" min="1">
+        {% render_field form.time|attr:'required:true' class="form-control " placeholder="Time (in minutes)"%}
+      </div>
+      <div class="form-group">
+        <label for="quiz_code">Quiz Code:</label>
+        <input type="text" id="quiz_code" name="quiz_code" maxlength="10" required>
+      </div>
+
+      <div class="form-group">
+        <label for="retest">Is player allowed to take a retest? </label>
+        <div class="v">
+          <input type="checkbox" id="retest" name="retest">
+          {% render_field form.retest|attr:'required:true' class="form-control toggle-button" placeholder="Retest" %}
+          <label for="retest"></label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="show_marks">Can player see points?</label>
+        <div class="toggle-button">
+          <input type="checkbox" id="show_marks" name="show_marks">
+          {% render_field form.showMarks|attr:'required:true' class="form-control toggle-button" placeholder="show_marks" %}
+          <label for="show_marks"></label>
+        </div>
+      </div>
+      <div class="form-group">
+        <button type="submit">Create Quiz</button>
+      </div>
+    </form>
+  </div> -->
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    function toggleTimeSection() {
+      var timeSection = document.getElementById('time-section');
+      var isTimed = document.getElementById('is_timed');
+      if (isTimed.checked) {
+        timeSection.style.display = 'block';
+      } else {
+        timeSection.style.display = 'none';
+      }
+    }
+  </script>
+{% endblock %}
+
+{%block extra_css%}
+
+<style>
+  body{
+    margin: auto;
+  }
+  .card {
+    width: 350px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin: 10px;
+  
+  }
+  
+  .card-header {
+    background-color: #333;
+    padding: 16px;
+    text-align: center;
+  }
+  
+  .card-header .text-header {
+    margin: 0;
+    font-size: 18px;
+    color: rgb(255, 255, 255);
+  }
+  
+  .card-body {
+    padding: 16px;
+  }
+  
+  .form-group {
+    margin-bottom: 10px;
+  }
+  
+  .form-group label {
+    display: block;
+    font-size: 14px;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 1px;
+  }
+  
+  .form-group input[type="text"],
+  .form-group input[type="email"],
+  .form-group input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .btn {
+    padding: 12px 24px;
+    margin-left: 13px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #333;
+    color: #fff;
+    text-transform: uppercase;
+    transition: background-color 0.2s ease-in-out;
+    cursor: pointer
+  }
+  
+  .btn:hover {
+    background-color: #ccc;
+    color: #333;
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  </style>
+
+{%endblock%}

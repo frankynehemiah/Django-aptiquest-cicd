@@ -20,4 +20,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('rootQuiz.urls')),
     path('', include('player.urls')),
+    path('',include('CustomQuiz.urls')),
 ]

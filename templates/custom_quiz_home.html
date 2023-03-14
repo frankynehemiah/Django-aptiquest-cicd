@@ -1,0 +1,143 @@
+{% extends 'profilebase.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Custom Quiz</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+        <a href="/customQuiz">Create Quiz</a>
+    </nav>
+    <h1>Quiz List</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Quiz Name</th>
+                <th>Quiz Code</th>
+                <th>Is Active</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for quiz in customQuiz %}
+                <tr class="quiz-row">
+                    <td id="quizNameToClick">{{ quiz.quiz_name }}</td>
+                    <td>{{ quiz.quizCode }}</td>
+                    <td>{{ quiz.isActive }}</td>
+                    <td><button>Delete</button></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+     // To get the csrf token
+     function getCSRFToken() {
+    const csrfTokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('csrftoken='));
+    if (csrfTokenCookie) {
+      const csrfToken = csrfTokenCookie.split('=')[1];
+      return csrfToken;
+    } else {
+      return null;
+    }
+    } 
+    $(document).ready(function() {
+        $('.quiz-row').click(function() {
+            var quizId = $(this).find('td:nth-child(2)').text(); // extract the quiz name from the second td element
+            console.log(quizId);// log the extracted data to the console
+
+            
+            const csrfToken = getCSRFToken();
+            if (csrfToken) {
+                fetch('/sendDataToQuestions', {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({ 'quiz_id': quizId }),
+                }).then(response => {
+                // Redirect to another URL
+                console.log(response.url);
+                window.location.href = response.url;
+                })   
+            }
+        });
+    });
+
+   
+
+</script>
+{% endblock %}
+
+{%block extra_css%}
+<style>
+    /* Style for the navigation bar */
+    nav {
+    background-color: #333;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    }
+    nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    }
+    nav li {
+    margin-right: 20px;
+    }
+    nav a {
+    color: #fff;
+    text-decoration: none;
+    }
+    nav a:hover {
+    text-decoration: underline;
+    }
+    /* Style for the table */
+    table {
+        border-collapse: collapse;
+        margin: 20px 0;
+        width: 100%;
+    }
+    th, td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+    td button {
+        background-color: #e74c3c;
+        border: none;
+        border-radius: 5px;
+        color: #fff;
+        cursor: pointer;
+        padding: 5px 10px;
+    }
+    td button:hover {
+        background-color: #c0392b;
+    }
+</style>
+{%endblock%}
+
+{% endblock content %}

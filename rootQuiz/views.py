@@ -5,7 +5,7 @@ from random import shuffle;
 from django.contrib import messages;
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth.models import User, auth
-from rootQuiz import models as Model
+from rootQuiz import models as MODEL
 from . import forms,models
 from django import forms
 from django.contrib.auth.models import Group
@@ -23,8 +23,10 @@ from datetime import date, timedelta
 # Create your views here.
 
 category_keyword ={}
-ansArray = []
-numberOfQuestion = 1
+answerArray = []
+
+checkAnswerArr = []
+numberOfQuestion = 5
 
 #--------------------------------------------------------------------------------------#
 def isLogedin(user):
@@ -34,6 +36,17 @@ def setCategory(x):
   global currentCategory
   currentCategory = x
   
+def AppendAnswers(val):
+    global checkAnswerArr
+    if(val != "" or val != None):
+        checkAnswerArr.append(val)
+
+        
+    
+def ClearAnswers():
+    global checkAnswerArr
+    checkAnswerArr.clear()
+    print("Answer Array", checkAnswerArr)
 
 def AppendCategory(val): 
   global category_keyword
@@ -131,6 +144,7 @@ def selectedQuiz(request, category):
       },
     ];
         #get random item in list?
+        ClearAnswers()
         pushKeyWord = random.choice(category_keyword[category])
         print(pushKeyWord)
         #how to concatinate string in python
@@ -145,7 +159,7 @@ def selectedQuiz(request, category):
 
             ans = str(QueObj['correctAnswer']).replace('\"','').replace('\\"','').replace('\'','')
             options.append(ans)
-            ansArray.append(ans)
+            AppendAnswers(ans)
             for opt in QueObj['incorrectAnswers']:
                 options.append(str(opt).replace('\\"','').replace('\"','').replace('\'',''))
             shuffle(options)
@@ -171,20 +185,19 @@ def result(request):
         answers = data['ansArray']
         counter = 0
         # how to compare string in python?
+        print(checkAnswerArr)
+        print(len(answers)," : ", len(checkAnswerArr))
         for i in range(0,numberOfQuestion):
-            print(len(answers),"THis is answer length\n")
-            print( len(ansArray))
-            if(answers[i] == ansArray[i]):
+            if(answers[i] == checkAnswerArr[i]):
               counter = counter + 1
-  # here i need to get the player id 
-        PlayerName = request.user.username
-        # print("palyer name,", PlayerName, " Currernt Category ", currentCategory)
-        players = models.Player.objects.get(user_id=request.user.id)
-        Result = Model.Result()
+        ClearAnswers()        
+        players = MODEL.Player.objects.get(user_id=request.user.id)
+        Result = MODEL.Result()
         Result.marks = counter
         Result.category = currentCategory
         Result.player = players
-        Result.save()   
+        Result.save()
+        print("this is counter Output ", counter)   
         return JsonResponse({'result': counter})
     else: 
         return JsonResponse({'error': 'Invalid method'})
@@ -225,7 +238,7 @@ def register(requests):
                 return redirect('register')
             else:
                 user = User.objects.create_user(username=username,email=email,password=password)
-                Player = Model.Player()
+                Player = MODEL.Player()
                 Player.user = user
                 Player.save()
                 user.save()
@@ -236,8 +249,6 @@ def register(requests):
     else:
       return  render(requests, "register.html")
     
-
-
 def playerRegistration(request):
     userForm=forms.PlayerUserForm
     playerForm=forms.PlayerForm()
@@ -258,7 +269,10 @@ def playerRegistration(request):
     return render(request,'PlayerSignUp.html',context=mydict)
 
 def PlayerProfile(request):
-  player = models.Player.objects.get(user_id=request.user.id)
-  Result  = Model.Result.objects.filter(player =player)
-  print(Result)
-  return render(request,'player_dashboard.html',{'Result':Result})
+  if request.user.is_authenticated:
+    players = MODEL.Player.objects.get(user_id = request.user.id)
+    Result  = MODEL.Result.objects.filter(player =players)
+    print(Result)
+    return render(request,'player_dashboard.html',{'Result':Result})
+  else:
+     return redirect('login')
