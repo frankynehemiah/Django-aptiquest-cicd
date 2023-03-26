@@ -8,4 +8,6 @@ urlpatterns =[
     path('sendDataToQuestions',views.sendQuizID, name='sendDataToQuestions'),
     path('viewQuestions', views.ViewQuizQestions,name='viewQuestions'),
     path('del_question',views.delQuestion, name='del_question'),
+    path('view_custom_results', views.viewCustomResults, name= 'view_custom_results'),
+    path('reciveDataFromCustomQuiz',views.reciveDataFromCustomQuiz,name='reciveDataFromCustomQuiz'),
 ]

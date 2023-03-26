@@ -1,3 +1,233 @@
-{%for category in quizCategory %}
-<h1><a href="{% url 'quiz' category%}">{{category}}</a></h1>
-{%endfor%}
+{%load static%}
+
+<link rel="stylesheet" href="{%static 'stylenav.css'%}">
+
+<div class="mainbody">
+    <nav>
+        <h2 class="logo">Apti<span>Quest</span></h2>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="profile">Dashboard</a></li>
+        </ul>
+    </nav>
+
+
+    <div>
+        <div class="quizcard-container">
+            <div class="quizcard-row">
+                {% for category in quizCategory %}
+                <div class="quizcard">
+                    <div class="card__content"><a href="{% url 'quiz' category %}">{{ category }}</a></div>
+                </div>
+                {% endfor %}
+            </div>
+
+        </div>
+
+
+
+
+    </div>
+
+    <div>
+        <div class="row justify-content-evenly">
+            <div class="col-3">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="text-header">Play Custom Quiz</div>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" , action="quiz/customQuiz">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                {% for message in messages %}
+                                <h5>{{message}}</h5>
+                                {%endfor%}
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="username">QUIZ CODE:</label>
+                                    <input type="text" name="quizCode">
+                                </div>
+                                <input class="btn btn-primary" type="submit" value="PLAY" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+
+    </div>
+
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+
+
+
+
+{%block extra_css%}
+
+<style>
+    .quizcard-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .quizcard-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .quizcard {
+        width: 300px;
+        height: 150px;
+        background-color: #f2f2f2;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        margin-right: 20px;
+        margin-bottom: 20px;
+    }
+
+    .card__content {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .card__content a {
+        text-decoration: none;
+        color: #333;
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+
+
+    .mainboady {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: black;
+        color: #000;
+    }
+
+    h5 {
+        color: red;
+    }
+
+    /* .quizcard {
+        width: 100px;
+        height: 50px;
+        border-radius: 20px;
+        padding: 5px;
+        margin-bottom: 5px;
+        box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
+        background-image: linear-gradient(144deg, #AF40FF, #5B42F3 50%, #00DDEB);
+    }
+
+    .card__content {
+        background: rgb(5, 6, 45);
+        border-radius: 17px;
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+        color: white;
+        height: 100%;
+
+    } */
+
+    /* iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii */
+
+    body {
+        background-color: #000;
+        margin: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card {
+        width: 350px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin: 10px;
+
+    }
+
+    .card-header {
+        background-color: #333;
+        padding: 16px;
+        text-align: center;
+    }
+
+    .card-header .text-header {
+        margin: 0;
+        font-size: 18px;
+        color: rgb(255, 255, 255);
+    }
+
+    .card-body {
+        padding: 16px;
+    }
+
+    .form-group {
+        margin-bottom: 10px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        color: #333;
+        font-weight: bold;
+        margin-bottom: 1px;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="password"] {
+        width: 100%;
+        padding: 8px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        margin-left: 13px;
+        font-size: 16px;
+        border: none;
+        border-radius: 4px;
+        background-color: #333;
+        color: #fff;
+        text-transform: uppercase;
+        transition: background-color 0.2s ease-in-out;
+        cursor: pointer
+    }
+
+    .btn:hover {
+        background-color: #ccc;
+        color: #333;
+    }
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+</style>
+
+{% endblock extra_css%}

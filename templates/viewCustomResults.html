@@ -1,6 +1,3 @@
-{% extends 'profilebase.html' %}
-{% block content%}
-{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -50,9 +47,6 @@
 				opacity: 1;
 			}
 		}
-
-
-
 	</style>
 </head>
 <body>
@@ -62,17 +56,17 @@
 	<table>
 		<thead>
 			<tr>
-				<th>Category</th>
+				<th>Player</th>
 				<th>Marks</th>
 				<th>Date</th>
 			</tr>
 		</thead>
 		<tbody>
-      {%for r in Result%}
+      {%for prop in Result %}
       <tr>
-        <td>{{r.category}}</td>
-        <td>{{r.marks}}</td>
-        <td>{{r.date}}</td>
+        <td>{{prop.player}}</td>
+        <td>{{prop.marks}}</td>
+        <td>{{prop.date}}</td>
       </tr>
       {%endfor%}
 		</tbody>
@@ -80,4 +74,3 @@
 
 </body>
 </html>
-{%endblock content%}

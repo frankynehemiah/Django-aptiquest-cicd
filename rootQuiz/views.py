@@ -16,6 +16,8 @@ from django.contrib.auth.models import Group
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from datetime import date, timedelta
+from django.core import serializers
+
 
 
 
@@ -27,6 +29,9 @@ answerArray = []
 
 checkAnswerArr = []
 numberOfQuestion = 5
+def setNumberOfQUestions(x):
+    global numberOfQuestion
+    numberOfQuestion = x
 
 #--------------------------------------------------------------------------------------#
 def isLogedin(user):
@@ -41,7 +46,11 @@ def AppendAnswers(val):
     if(val != "" or val != None):
         checkAnswerArr.append(val)
 
-        
+quizIDtoPass =""
+
+def setQuizId(x):
+    global quizIDtoPass
+    quizIDtoPass = x
     
 def ClearAnswers():
     global checkAnswerArr
@@ -53,11 +62,10 @@ def AppendCategory(val):
   category_keyword = val
 #how to remove backslash from string in python?
 
-def QuestionDict(numb, question,answer,options):
+def QuestionDict(numb, question,options):
     D = {
         "numb" : numb,
         "question" : question,
-        "answer" : answer,
         "options" : options
     } 
     return D
@@ -84,8 +92,45 @@ def home(request):
     return render(request, 'index.html',{'quizCategory': quizCategory})
 
 def selectedQuiz(request, category):
+    trial_question = []
+    counter = 0
     if request.user.is_authenticated:
-        trial_question = []
+        if request.method == "POST":
+          quizCODE = request.POST.get('quizCode',False)
+          if MODEL.CustomQuiz.objects.filter(quizCode = quizCODE).exists():
+              print("FOUND")
+              setCategory('customQuiz')
+              setQuizId(quizCODE)
+              cQuiz = MODEL.CustomQuiz.objects.get(quizCode = quizCODE)
+              questionList = MODEL.Question.objects.filter(quiz_id_to_store = cQuiz)
+               
+              hero = serializers.serialize('json', questionList)
+              
+              hreoo = json.loads(hero)
+              # print("THIS IS :",hreoo)
+              for mdl in hreoo:
+                  options = []
+                  # print(mdl)
+                  qq = mdl['fields']
+                  counter = counter +1
+                  que_pass =str(qq['question']).replace('\"','').replace('\\"','').replace('\'','')
+                  options.append(str(qq['option1']).replace('\"','').replace('\\"','').replace('\'',''))
+                  options.append(str(qq['option2']).replace('\"','').replace('\\"','').replace('\'',''))
+                  options.append(str(qq['option3']).replace('\"','').replace('\\"','').replace('\'',''))
+                  ansP = str(qq['answer']).replace('\"','').replace('\\"','').replace('\'','')
+                  options.append(ansP)
+                  AppendAnswers(qq['answer'])
+                  setCategory(quizCODE)
+                  shuffle(options)
+                  trial_question.append(QuestionDict(counter,que_pass,options))
+              print(trial_question)
+              setNumberOfQUestions(len(trial_question))
+              cQuestions = (json.dumps(trial_question))
+              return render(request, "quiz.html",{'category':"Custom Quiz",'questions':cQuestions})
+          else:
+              return JsonResponse({"NOT FOUND"})
+        
+        # ==============================================Normal Code ============================
         questions_data = [
         {
         "numb": 1,
@@ -143,7 +188,7 @@ def selectedQuiz(request, category):
         ]
       },
     ];
-        #get random item in list?
+        # get random item in list?
         ClearAnswers()
         pushKeyWord = random.choice(category_keyword[category])
         print(pushKeyWord)
@@ -151,7 +196,7 @@ def selectedQuiz(request, category):
         URL = 'https://the-trivia-api.com/api/questions?categories='+pushKeyWord+'&limit='+str(numberOfQuestion)+'&difficulty=easy'
         Document = requests.get(URL)
         Json_DOC =Document.json()
-        counter = 0
+        
       
         for QueObj in Json_DOC:
             counter = counter +1
@@ -169,7 +214,7 @@ def selectedQuiz(request, category):
             
             que_pass = str(QueObj['question']).replace('\"','').replace('\\','').replace('\'','')
             ans_pass = str(QueObj['correctAnswer']).replace('\"','').replace('\\','').replace('\'','')
-            trial_question.append(QuestionDict(counter,que_pass,ans_pass,options))
+            trial_question.append(QuestionDict(counter,que_pass,options))
         print(trial_question)
         questions = (json.dumps(trial_question))
         setCategory(category)
@@ -193,9 +238,14 @@ def result(request):
         ClearAnswers()        
         players = MODEL.Player.objects.get(user_id=request.user.id)
         Result = MODEL.Result()
+        if currentCategory == quizIDtoPass:
+            custom = MODEL.CustomQuiz.objects.get(quizCode = quizIDtoPass)
+            Result.customQuizID = custom
+            Result.player = players.get_name
+            Result.isCustom = True
         Result.marks = counter
         Result.category = currentCategory
-        Result.player = players
+        Result.playerIDent = players
         Result.save()
         print("this is counter Output ", counter)   
         return JsonResponse({'result': counter})
@@ -271,8 +321,11 @@ def playerRegistration(request):
 def PlayerProfile(request):
   if request.user.is_authenticated:
     players = MODEL.Player.objects.get(user_id = request.user.id)
-    Result  = MODEL.Result.objects.filter(player =players)
-    print(Result)
+    if MODEL.Result.objects.filter(playerIDent=players).exists():
+        Result  = MODEL.Result.objects.filter(playerIDent=players)
+        print(Result)
+    else:
+        Result = {}
     return render(request,'player_dashboard.html',{'Result':Result})
   else:
      return redirect('login')

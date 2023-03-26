@@ -6,6 +6,17 @@ from. import forms as QFORM
 from rootQuiz import models as QMODEL
 from .forms import CustomQuizForm,QuestionForm
 from django.shortcuts import get_object_or_404
+from django.core import serializers
+
+
+
+def ResultDict(player, marks,date):
+    D = {
+        "player" : player,
+        "marks" : marks,
+        "date" : date,
+    } 
+    return D
 
 # Create your views here.
 currentQuizId = ""
@@ -129,3 +140,43 @@ def delQuestion(request):
             return JsonResponse({'error': 'Invalid method'})  
     else:
         return redirect('login')
+
+
+def reciveDataFromCustomQuiz(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        queNumber = data['quiz_id']
+        SetCurrentQuizId(queNumber)
+        url = '/view_custom_results'
+        return redirect(url) 
+    else: 
+        return JsonResponse({'error': 'Invalid method'})
+
+
+def viewCustomResults(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    
+    players = QMODEL.Player.objects.get(user_id = request.user.id)
+    
+    if QMODEL.CustomQuiz.objects.filter(creator = players,quizCode=currentQuizId).exists():
+        customQuiz  = QMODEL.CustomQuiz.objects.get(creator =players,quizCode=currentQuizId)
+        result = QMODEL.Result.objects.filter(isCustom = True, customQuizID = customQuiz)
+        print(result)
+        hero = serializers.serialize('json', result)
+        k = json.loads(hero)
+        resultArray = []
+        for mdl in k:
+                # print(mdl)
+                qq = mdl['fields']
+                # print(qq['player'],qq['marks'],qq['date'])
+                resultArray.append(ResultDict(qq['player'],qq['marks'],qq['date']))
+        # customResult = json.dumps(resultArray)
+        # print("THIS IS THE RESULT ",customResult)
+
+        # return HttpResponse({"success":"Yeah!!!"})
+        return render(request,'viewCustomResults.html',{'Result':resultArray})
+    else:
+        return HttpResponse({"Unsucess"})  
+    

@@ -2,8 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 import uuid
 
-
-
 class Player(models.Model):
     user=models.OneToOneField(User,on_delete=models.CASCADE)
     profile_pic= models.ImageField(upload_to='static/images/profile_pic/',null=True,blank=True)
@@ -55,9 +53,11 @@ class Question(models.Model):
     
 
 class Result(models.Model):
-    player = models.ForeignKey(Player,on_delete=models.CASCADE)
+    playerIDent = models.ForeignKey(Player, on_delete=models.CASCADE)
+    player = models.CharField(max_length=100)
     isCustom = models.BooleanField(default=False)
-    # quizID = models.ForeignKey(CustomQuiz,on_delete=models.CASCADE)  
+    customQuizID = models.ForeignKey(CustomQuiz,on_delete=models.CASCADE, null = True)  
     category = models.CharField(max_length=25)
     marks = models.PositiveIntegerField()
     date = models.DateTimeField(auto_now_add=True)
+
