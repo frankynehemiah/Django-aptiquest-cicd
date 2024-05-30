@@ -123,6 +123,7 @@ next_btn.onclick = ()=>{
         clearInterval(counter); //clear counter
         clearInterval(counterLine); //clear counterLine
         showResult(); //calling showResult function
+        ansArray = [];
     }
 }
 
@@ -160,41 +161,52 @@ function showResult(){
     
     const csrfToken = getCSRFToken();
     if (csrfToken) {
-      fetch('/result', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken,
-        },
-        body: JSON.stringify({ 'ansArray': ansArray }),
-      })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data)
-            userScore = data['result']
-            
-        info_box.classList.remove("activeInfo"); //hide info box
-        quiz_box.classList.remove("activeQuiz"); //hide quiz box
-        result_box.classList.add("activeResult"); //show result box
-        const scoreText = result_box.querySelector(".score_text");
-        if (userScore > 3){ // if user scored more than 3
-        //creating a new span tag and passing the user score number and total question number
-        let scoreTag = '<span>and congrats! 🎉, You got <p>'+ userScore +'</p> out of <p>'+ questions.length +'</p></span>';
-        scoreText.innerHTML = scoreTag;  //adding new span tag inside score_Text
-        }
-        else if(userScore > 1){ // if user scored more than 1
-        let scoreTag = '<span>and nice 😎, You got <p>'+ userScore +'</p> out of <p>'+ questions.length +'</p></span>';
-        scoreText.innerHTML = scoreTag;
-        }
-        else{ // if user scored less than 1
-        let scoreTag = '<span>and sorry 😐, You got only <p>'+ userScore +'</p> out of <p>'+ questions.length +'</p></span>';
-        scoreText.innerHTML = scoreTag;
-    }
+        fetch('/result', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+          },
+          body: JSON.stringify({ ansArray: ansArray }),
         })
-        .catch(error => console.error(error));
-    } else {
-      console.error('CSRF token not found');
-    }
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log(data);
+            const userScore = data['Marks'];
+      
+            // Hide info and quiz boxes
+            info_box.classList.remove("activeInfo");
+            quiz_box.classList.remove("activeQuiz");
+      
+            // Show result box
+            result_box.classList.add("activeResult");
+      
+            // Update score text
+            const scoreText = result_box.querySelector(".score_text");
+            let scoreTag;
+      
+            if (userScore > 3) { // If user scored more than 3
+              scoreTag = `<span>and congrats! 🎉, You got <p>${userScore}</p> out of <p>${questions.length}</p></span>`;
+            } else if (userScore > 1) { // If user scored more than 1
+              scoreTag = `<span>and nice 😎, You got <p>${userScore}</p> out of <p>${questions.length}</p></span>`;
+            } else { // If user scored 1 or less
+              scoreTag = `<span>and sorry 😐, You got only <p>${userScore}</p> out of <p>${questions.length}</p></span>`;
+            }
+      
+            scoreText.innerHTML = scoreTag;
+          })
+          .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+          });
+      } else {
+        console.error('CSRF token not found');
+      }
+      
 
 }
 // how to send data from frontend to backend django?

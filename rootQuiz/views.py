@@ -28,7 +28,7 @@ category_keyword ={}
 answerArray = []
 
 checkAnswerArr = []
-numberOfQuestion = 5
+numberOfQuestion = 2
 def setNumberOfQUestions(x):
     global numberOfQuestion
     numberOfQuestion = x
@@ -97,38 +97,38 @@ def selectedQuiz(request, category):
     if request.user.is_authenticated:
         if request.method == "POST":
           quizCODE = request.POST.get('quizCode',False)
-          if MODEL.CustomQuiz.objects.filter(quizCode = quizCODE).exists():
-              print("FOUND")
-              setCategory('customQuiz')
-              setQuizId(quizCODE)
-              cQuiz = MODEL.CustomQuiz.objects.get(quizCode = quizCODE)
-              questionList = MODEL.Question.objects.filter(quiz_id_to_store = cQuiz)
+        #   if MODEL.CustomQuiz.objects.filter(quizCode = quizCODE).exists():
+        #       print("FOUND")
+        #       setCategory('customQuiz')
+        #       setQuizId(quizCODE)
+        #       cQuiz = MODEL.CustomQuiz.objects.get(quizCode = quizCODE)
+        #       questionList = MODEL.Question.objects.filter(quiz_id_to_store = cQuiz)
                
-              hero = serializers.serialize('json', questionList)
+        #       hero = serializers.serialize('json', questionList)
               
-              hreoo = json.loads(hero)
-              # print("THIS IS :",hreoo)
-              for mdl in hreoo:
-                  options = []
-                  # print(mdl)
-                  qq = mdl['fields']
-                  counter = counter +1
-                  que_pass =str(qq['question']).replace('\"','').replace('\\"','').replace('\'','')
-                  options.append(str(qq['option1']).replace('\"','').replace('\\"','').replace('\'',''))
-                  options.append(str(qq['option2']).replace('\"','').replace('\\"','').replace('\'',''))
-                  options.append(str(qq['option3']).replace('\"','').replace('\\"','').replace('\'',''))
-                  ansP = str(qq['answer']).replace('\"','').replace('\\"','').replace('\'','')
-                  options.append(ansP)
-                  AppendAnswers(qq['answer'])
-                  setCategory(quizCODE)
-                  shuffle(options)
-                  trial_question.append(QuestionDict(counter,que_pass,options))
-              print(trial_question)
-              setNumberOfQUestions(len(trial_question))
-              cQuestions = (json.dumps(trial_question))
-              return render(request, "quiz.html",{'category':"Custom Quiz",'questions':cQuestions})
-          else:
-              return JsonResponse({"NOT FOUND"})
+        #       hreoo = json.loads(hero)
+        #       # print("THIS IS :",hreoo)
+        #       for mdl in hreoo:
+        #           options = []
+        #           # print(mdl)
+        #           qq = mdl['fields']
+        #           counter = counter +1
+        #           que_pass =str(qq['question']).replace('\"','').replace('\\"','').replace('\'','')
+        #           options.append(str(qq['option1']).replace('\"','').replace('\\"','').replace('\'',''))
+        #           options.append(str(qq['option2']).replace('\"','').replace('\\"','').replace('\'',''))
+        #           options.append(str(qq['option3']).replace('\"','').replace('\\"','').replace('\'',''))
+        #           ansP = str(qq['answer']).replace('\"','').replace('\\"','').replace('\'','')
+        #           options.append(ansP)
+        #           AppendAnswers(qq['answer'])
+        #           setCategory(quizCODE)
+        #           shuffle(options)
+        #           trial_question.append(QuestionDict(counter,que_pass,options))
+        #       print(trial_question)
+        #       setNumberOfQUestions(len(trial_question))
+        #       cQuestions = (json.dumps(trial_question))
+        #       return render(request, "quiz.html",{'category':"Custom Quiz",'questions':cQuestions})
+        #   else:
+        #       return JsonResponse({"NOT FOUND"})
         
         # ==============================================Normal Code ============================
         questions_data = [
@@ -216,6 +216,7 @@ def selectedQuiz(request, category):
             ans_pass = str(QueObj['correctAnswer']).replace('\"','').replace('\\','').replace('\'','')
             trial_question.append(QuestionDict(counter,que_pass,options))
         print(trial_question)
+        print(checkAnswerArr)
         questions = (json.dumps(trial_question))
         setCategory(category)
         return render(request,'quiz.html',{'category':category, 'questions':questions})
@@ -223,36 +224,55 @@ def selectedQuiz(request, category):
        return redirect('login')
 
 def result(request):
-    # print(request.POST)
-    # return JsonResponse({'result':"request Handeled"})
-    if request.method == 'POST': 
-        data = json.loads(request.body)
-        answers = data['ansArray']
-        counter = 0
-        # how to compare string in python?
-        print(checkAnswerArr)
-        print(len(answers)," : ", len(checkAnswerArr))
-        for i in range(0,numberOfQuestion):
-            if(answers[i] == checkAnswerArr[i]):
-              counter = counter + 1
-        ClearAnswers()        
-        players = MODEL.Player.objects.get(user_id=request.user.id)
-        Result = MODEL.Result()
-        if currentCategory == quizIDtoPass:
-            custom = MODEL.CustomQuiz.objects.get(quizCode = quizIDtoPass)
-            Result.customQuizID = custom
-            Result.player = players.get_name
-            Result.isCustom = True
-        Result.marks = counter
-        Result.category = currentCategory
-        Result.playerIDent = players
-        Result.save()
-        print("this is counter Output ", counter)   
-        return JsonResponse({'result': counter})
-    else: 
-        return JsonResponse({'error': 'Invalid method'})
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            answers = data.get('ansArray', [])
+            counter = 0
+            print("Answers received:", answers)
+            
+            if len(answers) != len(checkAnswerArr):
+                return JsonResponse({'error': 'Invalid number of answers'}, status=400)
+            
+            for i in range(len(answers)):
+                if answers[i] == checkAnswerArr[i]:
+                    counter += 1
+            print("Result:", counter)
+
+            ClearAnswers()        
+
+            try:
+                player = MODEL.Player.objects.get(user_id=request.user.id)
+            except MODEL.Player.DoesNotExist:
+                return JsonResponse({'error': 'Player does not exist'}, status=404)
+            print("Player:", player)
+
+            result_instance = MODEL.Result()
+            print(type(result_instance))
+            if currentCategory == quizIDtoPass:
+                try:
+                    custom_quiz = MODEL.CustomQuiz.objects.get(quizCode=quizIDtoPass)
+                    result_instance.customQuizID = custom_quiz
+                    result_instance.isCustom = True
+                except MODEL.CustomQuiz.DoesNotExist:
+                    return JsonResponse({'error': 'Custom quiz does not exist'}, status=404)
+
+            result_instance.player = player.get_name
+            result_instance.marks = int(counter)
+            result_instance.category = currentCategory
+            result_instance.playerIDent = player
+            result_instance.save()
+
+            print("Counter Output:", counter)
+            return JsonResponse({'Marks': counter})
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return JsonResponse({'error': 'An error occurred'}, status=500)
+    else:
+        return JsonResponse({'error': 'Invalid method'}, status=405)
     
-    # LOGIN FUNCTION:
 
 def login(requests): 
     if requests.method == "POST":

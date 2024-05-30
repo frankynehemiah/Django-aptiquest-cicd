@@ -50,7 +50,6 @@ class Question(models.Model):
     option3=models.CharField(max_length=200)
     answer=models.CharField(max_length=200)
     
-    
 
 class Result(models.Model):
     playerIDent = models.ForeignKey(Player, on_delete=models.CASCADE)
