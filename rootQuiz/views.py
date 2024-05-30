@@ -28,7 +28,7 @@ category_keyword ={}
 answerArray = []
 
 checkAnswerArr = []
-numberOfQuestion = 2
+numberOfQuestion = 10
 def setNumberOfQUestions(x):
     global numberOfQuestion
     numberOfQuestion = x
@@ -97,38 +97,38 @@ def selectedQuiz(request, category):
     if request.user.is_authenticated:
         if request.method == "POST":
           quizCODE = request.POST.get('quizCode',False)
-        #   if MODEL.CustomQuiz.objects.filter(quizCode = quizCODE).exists():
-        #       print("FOUND")
-        #       setCategory('customQuiz')
-        #       setQuizId(quizCODE)
-        #       cQuiz = MODEL.CustomQuiz.objects.get(quizCode = quizCODE)
-        #       questionList = MODEL.Question.objects.filter(quiz_id_to_store = cQuiz)
+          if MODEL.CustomQuiz.objects.filter(quizCode = quizCODE).exists():
+              print("FOUND")
+              setCategory('customQuiz')
+              setQuizId(quizCODE)
+              cQuiz = MODEL.CustomQuiz.objects.get(quizCode = quizCODE)
+              questionList = MODEL.Question.objects.filter(quiz_id_to_store = cQuiz)
                
-        #       hero = serializers.serialize('json', questionList)
+              hero = serializers.serialize('json', questionList)
               
-        #       hreoo = json.loads(hero)
-        #       # print("THIS IS :",hreoo)
-        #       for mdl in hreoo:
-        #           options = []
-        #           # print(mdl)
-        #           qq = mdl['fields']
-        #           counter = counter +1
-        #           que_pass =str(qq['question']).replace('\"','').replace('\\"','').replace('\'','')
-        #           options.append(str(qq['option1']).replace('\"','').replace('\\"','').replace('\'',''))
-        #           options.append(str(qq['option2']).replace('\"','').replace('\\"','').replace('\'',''))
-        #           options.append(str(qq['option3']).replace('\"','').replace('\\"','').replace('\'',''))
-        #           ansP = str(qq['answer']).replace('\"','').replace('\\"','').replace('\'','')
-        #           options.append(ansP)
-        #           AppendAnswers(qq['answer'])
-        #           setCategory(quizCODE)
-        #           shuffle(options)
-        #           trial_question.append(QuestionDict(counter,que_pass,options))
-        #       print(trial_question)
-        #       setNumberOfQUestions(len(trial_question))
-        #       cQuestions = (json.dumps(trial_question))
-        #       return render(request, "quiz.html",{'category':"Custom Quiz",'questions':cQuestions})
-        #   else:
-        #       return JsonResponse({"NOT FOUND"})
+              hreoo = json.loads(hero)
+              # print("THIS IS :",hreoo)
+              for mdl in hreoo:
+                  options = []
+                  # print(mdl)
+                  qq = mdl['fields']
+                  counter = counter +1
+                  que_pass =str(qq['question']).replace('\"','').replace('\\"','').replace('\'','')
+                  options.append(str(qq['option1']).replace('\"','').replace('\\"','').replace('\'',''))
+                  options.append(str(qq['option2']).replace('\"','').replace('\\"','').replace('\'',''))
+                  options.append(str(qq['option3']).replace('\"','').replace('\\"','').replace('\'',''))
+                  ansP = str(qq['answer']).replace('\"','').replace('\\"','').replace('\'','')
+                  options.append(ansP)
+                  AppendAnswers(qq['answer'])
+                  setCategory(quizCODE)
+                  shuffle(options)
+                  trial_question.append(QuestionDict(counter,que_pass,options))
+              print(trial_question)
+              setNumberOfQUestions(len(trial_question))
+              cQuestions = (json.dumps(trial_question))
+              return render(request, "quiz.html",{'category':"Custom Quiz",'questions':cQuestions})
+          else:
+              return JsonResponse({"NOT FOUND"})
         
         # ==============================================Normal Code ============================
         questions_data = [
